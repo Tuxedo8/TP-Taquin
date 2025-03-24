@@ -1,0 +1,140 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title{Projet de Jeu de Taquin en C}
+\author{Jean Barekzai, Saphir Gobbi}
+
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+
+\section{Introduction}
+
+Le jeu de taquin, également connu sous le nom de jeu de quinze, est un puzzle classique qui a captivé l'intérêt de nombreux amateurs de jeux de société. Ce projet vise à mettre en œuvre une version informatique du jeu de taquin. L'objectif principal est de manipuler un plateau composé de 4 lignes et 4 colonnes, comprenant 15 pavés numérotés de 1 à 15, avec une case laissée libre.
+
+Le défi consiste à réorganiser les pavés désordonnés sur le plateau pour parvenir à une disposition où les nombres sont triés de manière croissante, laissant ainsi la case vide à un emplacement spécifique. Seuls les pavés adjacents à la case libre peuvent être déplacés sur cette dernière, autorisant les déplacements horizontaux ou verticaux.
+
+Ce projet combine des aspects de logique, de résolution de problèmes et d'algorithmique.
+
+Nous verrons dans un premier temps, les objectifs du projets, puis nous analyserons le programme que nous avons crée ainsi que ses fonctionnalités avancées, et enfin nous concluerons avec les possibles améliorations à apporter au projet. 
+
+\section{Objectifs du Projet}
+
+Les objectifs de ce projet sont les suivants:
+\begin{itemize}
+\item Définir une structures de données et les fonctions associées.
+\item Gestion des configurations et chargement depuis un fichier.
+\item Généralisation du jeu.
+\item Fonctionnalités Avancées (au choix).
+\item Utilisation d'un Makefile.
+\end{itemize}
+
+\section{Conception du Projet}
+\subsection{Structure de donnée}
+
+Nous avons commencé la conception du projet du Jeu de Taquin en choisissant de s'organiser de manière coordonné en utilisant un dépot Git.
+
+Puis nous devions définir une structure de donnée adaptée aux besoins du programme.
+
+Nous avons donc choisit la structure de données suivante :
+
+\begin{lstlisting}[language=C]
+struct grille { 
+         int **tab;
+         int taille;
+         int i_libre;
+         int j_libre ;
+ };  
+ typedef struct grille grille ;
+\end{lstlisting}
+
+Cette structure nous permet de créer un tableau d'entier en 2 dimensions, de connaitre la taille de ce tableau, et enfin de savoir la ligne et la colonne de la case vide. Les deux dernières variables seront actualisé au fur et a mesure, selon les actions du joueur. En gardant en mémoire la position de la case libre, on s'économise de nombreux parcours de tab. En effet, la position de la case libre dans le taquin est necessaire pour un certain nombre d'action ou d'évaluation sur la grille. Par exemple pour determinner si on peut le résoudre ou tout simplement effectuer un mouvement.
+
+\subsection{Fonctions utilisées}
+
+De plus, le programme fait appel aux fonctions suivantes:
+
+\begin{itemize}
+ \item \texttt{void displayGrille(grille* G) :} Affiche l'état actuel du plateau du jeu.
+ \item \texttt{void libereGrille(grille* g) :} Libère la mémoire allouée pour un seul plateau de jeu.
+ \item \texttt{void libereTabGrille(grille** g, int taille) :} Libère la mémoire allouée pour un tableau de plateaux de jeu.
+ \item \texttt{int ** newTab(int taille) :} Alloue la mémoire pour un nouveau tableau 2D représentant un plateau de jeu.
+ \item \texttt{grille * newGrilleID(int n) :} Crée un nouveau plateau de jeu avec les nombres disposés en ordre croissant et une case vide. Initialise le plateau en fonction de la taille donnée n.
+ \item \texttt{int * possible\_moves(grille* g) :} Retourne un tableau indiquant les mouvements possibles (haut, bas, gauche, droite) en fonction de la position actuelle de la case vide.
+ \item \texttt{void moving(grille* g, char direction) :} Effectue un déplacement dans la direction spécifiée ('h', 'b', 'g', 'd') en échangeant la case vide avec la case adjacente correspondant au mouvement. A noter qu'on n'évalue pas la légalité du mouvement dans cette fonction. Il faut donc veiller à le faire en amont avec possible\_moves.
+ \item \texttt{void melange(grille* g) :} Mélange le plateau du jeu en effectuant\\ un nombre aléatoire de mouvements valides.
+ \item \texttt{int verif( grille* user\_G) :} Vérifie si le joueur a trouvé la matrice ID (état final du jeu), renvoie 1 si oui, 0 sinon.
+ \item \texttt{grille ** import\_grille(char* nom\_fichier) :} Importe les plateaux de jeu à partir d'un fichier texte formaté comme suit. Le(s) premier(s) caractère(s) doivent être le nombre de grilles dans le fichier suivit d'un '.'. Ensuite, chaque plateau est défini par sa taille suivi d'un ";" et  de ses éléments, chacun suivi d'une virgule.
+ "2.2;1,0,3,2,3;1,2,3,4,5,6,8,7,0," est un exemple de formatage conforme avec un taquin de taille 2 et un taquin de taille 3.
+ \item \texttt{void play( grille* new\_G) :} Demande les mouvements de l'utilisateur ('h', 'b', 'g', 'd') jusqu'à ce que le joueur quitte ('q') ou atteigne la configuration identitée.
+ \item \texttt{play\_user\_melange() :} Permet à l'utilisateur de jouer au jeu de taquin. Demande la taille du plateau, initialise et mélange le plateau, puis fait appel à la fonction \texttt{play() :} afin de faire jouer l'utilisateur.
+ \item \texttt{int * getPos(int  ** tab, int val, int taille):} Renvoie un tableau d'entier de taille 2 contentant la ligne est la colonne de la première occurence de l'entier val dans le tableau 2D d'entiers tab. Si val n'est pas dans tab on retourne NULL.
+ \item \texttt{int resolvable(grille * g):} Indique si la grille est résolvable ou non en utilisant l'égalité des parités entre celle du nombre de transposition(échange de cases adjacentes ou non, vide ou non) necessaires pour arriver au taquin ID et une parité associé à la case vide qui correspond à celle du nombre de mouvements (eux légaux) pour replacer la case vide en bas à droite. Il est interessant de noter que les taquins générés avec \texttt{melange} seront toujours resolvables car obtenu par une suite de mouvement légaux. En revanche si on importe le taquin de Loyd par exemple, celui-ci est bien non résolvable.
+ \item \texttt{int menu():} Affiche un menu à l'utilisateur, lui permettant de choisir entre :
+  
+ \begin{enumerate}
+ \item Jouer une grille de taille demandé qui aura été mélangé par le programme ou jouer une grille importée si on a importé des grilles.
+ \item Importer, via un fichier externe, une ou plusieurs grille dans le jeu et de les jouer avec l'option 1 du menu. 
+ \item Quitter le programme.
+ \end{enumerate}   
+ 
+ \item \texttt{main() :} Fonction principale.
+ 
+\end{itemize}
+
+\subsection{Création d'un Makefile}
+Par la suite, nous avons mis en place un fichier \texttt{Makefile} pour faciliter la compilation du programme.\\
+
+\begin{lstlisting}[language=C]
+CC = gcc
+CFLAGS = -Wall
+TARGET = taquin
+SRC = main.c
+
+all: $(TARGET)
+
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+
+clean:
+	rm -f $(TARGET)
+\end{lstlisting}
+Ainsi, en entrant la commande \textbf{make} (sous linux) dans le répertoire où se trouve le fichier \texttt{main.c} et le fichier \texttt{Makefile} (les deux doivent être dans le même répertoire), la compilation donnera un executable nommé \textbf{taquin}.
+En détail on peut voir dans ce fichier Makefile :\\
+\begin{itemize}
+
+\item \textbf{CC :} Le compilateur que l'on utilise (ici, \texttt{gcc}).
+\item \textbf{CFLAGS :} Les options de compilation (-Wall pour activer les avertissements).
+\item \textbf{TARGET :} Le nom de l'exécutable que l'on souhaite générer (ici, \texttt{taquin}).
+\item \textbf{SRC :} Notre fichier source (ici, \texttt{main.c}).
+\item \textbf{all :} La cible par défaut, qui dépend de la cible \texttt{\$(TARGET)}.
+\item \textbf{\$(TARGET) :} La règle pour créer l'exécutable à partir du fichiers source.
+\item \textbf{clean :} Une cible pour supprimer les fichiers générés lors de la compilation.
+
+\end{itemize}
+
+\section{Conclusion et améliorations}
+
+En conclusion, à travers l'implémentation de la structure \texttt{grille} et des fonctions associées nous avons modélisé et implémenté le jeu de taquin. La fonction \texttt{menu()} interface tout les différents éléments que nous avons modélisés puis implémentés. Depuis celle-ci, on peut importer des grilles depuis un fichier formaté, jouer avec ces grilles ou d'autres générées par un nombre aléatoire de mouvements légaux comme spécifié dans le sujet. De plus, les fonctionalités supportent des grilles générales (de taille n>2). 
+
+Finalement, un Makefile est adjoint dans le fichier de rendu pour automatiser la compilation. Dans l'ensemble nous pensons avoir répendu aux objectifs que nous nous étions fixés au début de ce projet. 
+
+Cependant, le travail que nous proposons est assurément perfectible. Par exemple, nous avons implémenté la fonction \texttt{resolvable(grille * g)} pour aider le joueur dans la résolution d'un taquin en lui permettant de savoir si c'est une tâche réalisable. 
+
+Il manque cependant une fonctionalité  que nous aurions aimer lui adjoindre, à savoir la possibilité de demander un indice sous la forme d'un mouvement vers la résolution. Si le joueur voulait résoudre le taquin il aurait pu le faire en demandant des indices jusqu'à la résolution complète. La stabilité de la fonction \texttt{menu()} aurait egalement pu être améliorée. En l'état, nous avons constaté qu'entrer des caractères autre que des chiffres peut poser des problèmes et nécessiter un arret anticipé du programme.
+
+\end{document}
+
